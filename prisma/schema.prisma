@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id          String       @id @default(cuid())
+  name        String
+  email       String       @unique
+  password    String
+  school      School       @relation(fields: [schoolId], references: [id])
+  schoolId    String
+  role        String       @default("STUDENT") // STUDENT or ADMIN
+  totalPoints Int          @default(0)
+  submissions Submission[]
+  createdAt   DateTime     @default(now())
+}
+
+model School {
+  id    String @id @default(cuid())
+  name  String @unique
+  users User[]
+}
+
+model Submission {
+  id          String   @id @default(cuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  imageUrl    String
+  description String
+  status      String   @default("UNREAD") // UNREAD or READ
+  adminScore   Int?
+  adminComment String?
+  createdAt    DateTime @default(now())
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+}
