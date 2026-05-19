@@ -5,6 +5,14 @@ import { authOptions } from '../../auth/[...nextauth]/route'
 import path from 'path'
 import fs from 'fs-extra'
 
+import { v2 as cloudinary } from 'cloudinary'
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+})
+
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions)
   
@@ -24,14 +32,14 @@ export async function POST(request: Request) {
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    const filename = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads')
-    
-    await fs.ensureDir(uploadDir)
-    const filePath = path.join(uploadDir, filename)
-    await fs.writeFile(filePath, buffer)
+    const base64Data = buffer.toString('base64')
+    const fileUri = `data:${file.type};base64,${base64Data}`
 
-    const imageUrl = `/uploads/${filename}`
+    const uploadResponse = await cloudinary.uploader.upload(fileUri, {
+      folder: 'earth-pulse/submissions',
+    })
+
+    const imageUrl = uploadResponse.secure_url
 
     const submission = await prisma.submission.create({
       data: {

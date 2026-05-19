@@ -17,6 +17,14 @@ export async function GET() {
   }
 }
 
+import { v2 as cloudinary } from 'cloudinary'
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+})
+
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions)
   
@@ -36,16 +44,16 @@ export async function POST(request: Request) {
 
     let imageUrl = null
 
-    if (file) {
+    if (file && file.size > 0) {
       const bytes = await file.arrayBuffer()
       const buffer = Buffer.from(bytes)
-      const filename = `${Date.now()}-activity-${file.name.replace(/\s+/g, '-')}`
-      const uploadDir = path.join(process.cwd(), 'public', 'uploads')
-      
-      await fs.ensureDir(uploadDir)
-      const filePath = path.join(uploadDir, filename)
-      await fs.writeFile(filePath, buffer)
-      imageUrl = `/uploads/${filename}`
+      const base64Data = buffer.toString('base64')
+      const fileUri = `data:${file.type};base64,${base64Data}`
+
+      const uploadResponse = await cloudinary.uploader.upload(fileUri, {
+        folder: 'earth-pulse/activities',
+      })
+      imageUrl = uploadResponse.secure_url
     }
 
     const activity = await prisma.activity.create({
@@ -81,12 +89,13 @@ export async function PUT(request: Request) {
     if (file && file.size > 0) {
       const bytes = await file.arrayBuffer()
       const buffer = Buffer.from(bytes)
-      const filename = `${Date.now()}-activity-${file.name.replace(/\s+/g, '-')}`
-      const uploadDir = path.join(process.cwd(), 'public', 'uploads')
-      await fs.ensureDir(uploadDir)
-      const filePath = path.join(uploadDir, filename)
-      await fs.writeFile(filePath, buffer)
-      imageUrl = `/uploads/${filename}`
+      const base64Data = buffer.toString('base64')
+      const fileUri = `data:${file.type};base64,${base64Data}`
+
+      const uploadResponse = await cloudinary.uploader.upload(fileUri, {
+        folder: 'earth-pulse/activities',
+      })
+      imageUrl = uploadResponse.secure_url
     }
 
     const updated = await prisma.activity.update({
