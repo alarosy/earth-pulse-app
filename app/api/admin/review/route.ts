@@ -13,6 +13,10 @@ export async function POST(request: Request) {
   try {
     const { submissionId, score, adminComment } = await request.json()
 
+    if (typeof score !== 'number' || score < 1 || score > 10) {
+      return NextResponse.json({ message: 'التقييم يجب أن يكون بين 1 و 10' }, { status: 400 })
+    }
+
     const submission = await prisma.submission.findUnique({
       where: { id: submissionId },
       include: { user: true }

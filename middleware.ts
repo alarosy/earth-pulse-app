@@ -10,9 +10,6 @@ export default withAuth(
       return NextResponse.redirect(new URL("/", req.url))
     }
     
-    if (path.startsWith("/dashboard") && !token) {
-      return NextResponse.redirect(new URL("/login", req.url))
-    }
   },
   {
     callbacks: {

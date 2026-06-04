@@ -7,7 +7,9 @@ export default function AdminDashboard() {
   const { data: session } = useSession()
   const [students, setStudents] = useState<any[]>([])
   const [submissions, setSubmissions] = useState<any[]>([])
-  const [activeTab, setActiveTab] = useState('submissions') // submissions or students
+  const [activeTab, setActiveTab] = useState('submissions')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     fetch('/api/admin/data')
@@ -15,12 +17,22 @@ export default function AdminDashboard() {
       .then(data => {
         setStudents(data.students || [])
         setSubmissions(data.unreadSubmissions || [])
+        setLoading(false)
+      })
+      .catch(() => {
+        setError('فشل في تحميل البيانات')
+        setLoading(false)
       })
   }, [])
 
   return (
     <div className="container" dir="rtl">
       <h1>لوحة تحكم المشرف</h1>
+
+      {loading && <p style={{ textAlign: 'center', color: 'var(--text-light)' }}>جاري تحميل البيانات...</p>}
+      {error && <div style={{ color: 'var(--error)', marginBottom: '1rem', textAlign: 'center', background: '#ffebee', padding: '10px', borderRadius: '8px' }}>{error}</div>}
+
+      {!loading && !error && (<>
 
       <div className="flex gap-20" style={{ marginBottom: '2rem', borderBottom: '1px solid #ddd' }}>
         <button 
@@ -110,6 +122,7 @@ export default function AdminDashboard() {
 
       {activeTab === 'schools' && <SchoolManagement />}
       {activeTab === 'activities' && <ActivityManagement />}
+      </>)} 
     </div>
   )
 }
@@ -118,19 +131,37 @@ function ReviewForm({ submissionId }: { submissionId: string }) {
   const [score, setScore] = useState(5)
   const [adminComment, setAdminComment] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleReview = async () => {
+    if (score < 1 || score > 10) {
+      setError('التقييم يجب أن يكون بين 1 و 10')
+      return
+    }
     setLoading(true)
-    await fetch('/api/admin/review', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ submissionId, score, adminComment }),
-    })
-    window.location.reload()
+    setError('')
+    try {
+      const res = await fetch('/api/admin/review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ submissionId, score, adminComment }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data.message || 'فشل في حفظ التقييم')
+        setLoading(false)
+        return
+      }
+      window.location.reload()
+    } catch {
+      setError('فشل الاتصال بالخادم')
+      setLoading(false)
+    }
   }
 
   return (
     <div className="flex flex-col gap-10">
+      {error && <div style={{ color: 'var(--error)', fontSize: '0.9rem' }}>{error}</div>}
       <textarea 
         placeholder="اكتب تعليقاً للطالب (اختياري)..." 
         className="input-field" 
@@ -160,11 +191,14 @@ function ReviewForm({ submissionId }: { submissionId: string }) {
 function SchoolManagement() {
   const [schools, setSchools] = useState<any[]>([])
   const [newSchool, setNewSchool] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const fetchSchools = () => {
     fetch('/api/schools')
       .then(res => res.json())
       .then(data => setSchools(data))
+      .catch(() => setError('فشل في تحميل المدارس'))
   }
 
   useEffect(() => {
@@ -173,18 +207,33 @@ function SchoolManagement() {
 
   const addSchool = async () => {
     if (!newSchool) return
-    await fetch('/api/admin/schools', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: newSchool }),
-    })
-    setNewSchool('')
-    fetchSchools()
+    setLoading(true)
+    setError('')
+    try {
+      const res = await fetch('/api/admin/schools', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newSchool }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data.message || 'فشل في إضافة المدرسة')
+        setLoading(false)
+        return
+      }
+      setNewSchool('')
+      fetchSchools()
+    } catch {
+      setError('فشل الاتصال بالخادم')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <div className="card">
       <h3>إضافة مدرسة جديدة</h3>
+      {error && <div style={{ color: 'var(--error)', marginBottom: '1rem' }}>{error}</div>}
       <div className="flex gap-10" style={{ marginTop: '1rem', marginBottom: '2rem' }}>
         <input 
           type="text" 
@@ -194,7 +243,7 @@ function SchoolManagement() {
           style={{ marginBottom: 0 }}
           placeholder="اسم المدرسة"
         />
-        <button className="btn btn-primary" onClick={addSchool}>إضافة</button>
+        <button className="btn btn-primary" onClick={addSchool} disabled={loading}>{loading ? 'جاري الإضافة...' : 'إضافة'}</button>
       </div>
 
       <h3>المدارس الحالية</h3>
@@ -215,11 +264,13 @@ function ActivityManagement() {
   const [description, setDescription] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const fetchActivities = () => {
     fetch('/api/activities')
       .then(res => res.json())
       .then(data => setActivities(data))
+      .catch(() => setError('فشل في تحميل النشاطات'))
   }
 
   useEffect(() => {
@@ -231,36 +282,57 @@ function ActivityManagement() {
     if (!title || !description) return
 
     setLoading(true)
+    setError('')
     const formData = new FormData()
     formData.append('title', title)
     formData.append('description', description)
     if (file) formData.append('file', file)
 
-    await fetch('/api/activities', {
-      method: 'POST',
-      body: formData,
-    })
-
-    setTitle('')
-    setDescription('')
-    setFile(null)
-    setLoading(false)
-    fetchActivities()
+    try {
+      const res = await fetch('/api/activities', {
+        method: 'POST',
+        body: formData,
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data.message || 'فشل في إضافة النشاط')
+        setLoading(false)
+        return
+      }
+      setTitle('')
+      setDescription('')
+      setFile(null)
+      fetchActivities()
+    } catch {
+      setError('فشل الاتصال بالخادم')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleDeleteActivity = async (id: string) => {
     if (!confirm('هل أنت متأكد من الحذف؟')) return
-    await fetch('/api/activities', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id })
-    })
-    fetchActivities()
+    try {
+      const res = await fetch('/api/activities', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data.message || 'فشل في حذف النشاط')
+        return
+      }
+      fetchActivities()
+    } catch {
+      setError('فشل الاتصال بالخادم')
+    }
   }
 
   return (
     <div className="card">
       <h3>إضافة نشاط جديد</h3>
+      {error && <div style={{ color: 'var(--error)', marginBottom: '1rem' }}>{error}</div>}
       <form onSubmit={handleAddActivity} style={{ marginTop: '1rem', marginBottom: '2rem' }}>
         <div className="flex flex-col gap-10">
           <input 

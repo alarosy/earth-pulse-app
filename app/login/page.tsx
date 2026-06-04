@@ -31,7 +31,12 @@ function LoginContent() {
       setError('البريد الإلكتروني أو كلمة المرور غير صحيحة')
       setLoading(false)
     } else {
-      router.push('/')
+      const session = await fetch('/api/auth/session').then(r => r.json())
+      if (session?.user?.role === 'ADMIN') {
+        router.push('/admin')
+      } else {
+        router.push('/dashboard')
+      }
       router.refresh()
     }
   }
