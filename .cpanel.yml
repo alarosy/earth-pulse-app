@@ -1,0 +1,11 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/$USER/seedling-app
+    - /bin/cp -r * $DEPLOYPATH
+    - cd $DEPLOYPATH
+    - source ~/nodevenv/seedling-app/20/bin/activate
+    - npm install --production=false
+    - npm run build
+    - npx prisma generate
+    - node scripts/seed-admin.js
