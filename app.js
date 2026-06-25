@@ -1,6 +1,6 @@
 // ====== CONFIG ======
-const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const SUPABASE_URL = 'https://hfkaumhqyeumwvfepmos.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhma2F1bWhxeWV1bXd2ZmVwbW9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0MTcyNzksImV4cCI6MjA5Nzk5MzI3OX0.lfZI_wizuLXTMhr5ylSdtz8r63ls5CNLfI1LOs0Wz0g';
 
 // ====== STATE ======
 let supabaseClient = null;
