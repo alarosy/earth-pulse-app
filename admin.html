@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة تحكم المشرف</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav class="navbar">
+  <div class="container flex justify-between items-center">
+    <a href="index.html" class="logo flex items-center gap-10" style="display:flex;align-items:center;gap:10px">
+      <img src="logo.jpg" alt="شعار" style="width:40px;height:40px;border-radius:50%;object-fit:cover" onerror="this.style.display='none'">
+      <span>منظمة نبض الأرض</span>
+    </a>
+    <div class="nav-links flex gap-20 items-center">
+      <span class="user-name hidden" id="userName"></span>
+      <a href="dashboard.html" class="auth-link dashboard-link hidden">لوحة التحكم</a>
+      <a href="admin.html" class="auth-link admin-link hidden">لوحة المشرف</a>
+      <a href="login.html" class="guest-link">تسجيل الدخول</a>
+      <a href="register.html" class="btn btn-primary guest-link">حساب جديد</a>
+      <a href="#" class="auth-link hidden" id="logoutLink">تسجيل الخروج</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container" dir="rtl">
+  <h1>لوحة تحكم المشرف</h1>
+
+  <div class="flex gap-20" style="margin-bottom:2rem;border-bottom:1px solid #ddd">
+    <a href="#" class="btn admin-tab tab-active" data-tab="submissions" style="border-radius:12px 12px 0 0">مشاركات غير مقروءة</a>
+    <a href="#" class="btn admin-tab" data-tab="students" style="border-radius:12px 12px 0 0">إدارة الطلاب</a>
+    <a href="#" class="btn admin-tab" data-tab="schools" style="border-radius:12px 12px 0 0">إدارة المدارس</a>
+    <a href="#" class="btn admin-tab" data-tab="activities" style="border-radius:12px 12px 0 0">إدارة النشاطات</a>
+  </div>
+
+  <div id="tabContent">
+    <div class="loading"><div class="spinner"></div></div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+</body>
+</html>

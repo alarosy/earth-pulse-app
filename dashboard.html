@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة تحكم الطالب</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav class="navbar">
+  <div class="container flex justify-between items-center">
+    <a href="index.html" class="logo flex items-center gap-10" style="display:flex;align-items:center;gap:10px">
+      <img src="logo.jpg" alt="شعار" style="width:40px;height:40px;border-radius:50%;object-fit:cover" onerror="this.style.display='none'">
+      <span>منظمة نبض الأرض</span>
+    </a>
+    <div class="nav-links flex gap-20 items-center">
+      <span class="user-name hidden" id="userName"></span>
+      <a href="dashboard.html" class="auth-link dashboard-link hidden">لوحة التحكم</a>
+      <a href="admin.html" class="auth-link admin-link hidden">لوحة المشرف</a>
+      <a href="login.html" class="guest-link">تسجيل الدخول</a>
+      <a href="register.html" class="btn btn-primary guest-link">حساب جديد</a>
+      <a href="#" class="auth-link hidden" id="logoutLink">تسجيل الخروج</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container" dir="rtl">
+  <div class="flex justify-between items-center" style="margin-bottom:2rem">
+    <h1>لوحة تحكم الطالب</h1>
+    <div class="card" style="padding:1rem 2rem;background:var(--primary-green);color:white">
+      <span style="font-size:1.2rem;font-weight:bold">مجموع النقاط: <span id="userPointsDisplay">0</span></span>
+    </div>
+  </div>
+
+  <div class="flex justify-center" style="margin-bottom:3rem">
+    <a href="upload.html" class="btn btn-primary" style="padding:20px 40px;font-size:1.2rem">📸 رفع صورة جديدة للشتلة</a>
+  </div>
+
+  <h3>مشاركاتك السابقة</h3>
+  <div id="submissionsContainer" class="grid-3" style="margin-top:1rem">
+    <div class="loading"><div class="spinner"></div></div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+</body>
+</html>

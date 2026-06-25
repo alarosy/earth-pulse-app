@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>إنشاء حساب - منظمة نبض الأرض</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav class="navbar">
+  <div class="container flex justify-between items-center">
+    <a href="index.html" class="logo">منظمة نبض الأرض</a>
+    <div class="nav-links flex gap-20 items-center">
+      <a href="login.html">تسجيل الدخول</a>
+      <a href="register.html" class="btn btn-primary">حساب جديد</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container flex justify-center items-center" style="min-height:80vh">
+  <div class="card" style="width:100%;max-width:450px" dir="rtl">
+    <h2 style="text-align:center">🌱 إنشاء حساب جديد</h2>
+    <p style="text-align:center;margin-bottom:2rem;color:var(--text-light)">انضم لمبادرة الشتلة الرقمية ووثق رحلة نمو شتلتك</p>
+
+    <div id="regError" class="error-msg hidden"></div>
+
+    <form id="registerForm">
+      <div class="gap-20 flex flex-col">
+        <div>
+          <label>الاسم الكامل</label>
+          <input type="text" id="regName" class="input-field" required placeholder="أدخل اسمك الكامل">
+        </div>
+        <div>
+          <label>البريد الإلكتروني</label>
+          <input type="email" id="regEmail" class="input-field" required placeholder="example@mail.com">
+        </div>
+        <div>
+          <label>المدرسة</label>
+          <select id="schoolSelect" class="input-field" required>
+            <option value="">جاري تحميل المدارس...</option>
+          </select>
+        </div>
+        <div>
+          <label>كلمة المرور</label>
+          <input type="password" id="regPassword" class="input-field" required placeholder="********">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;margin-top:1rem">تسجيل</button>
+      </div>
+    </form>
+
+    <div style="margin-top:1.5rem;text-align:center">
+      <span>لديك حساب بالفعل؟ </span>
+      <a href="login.html" style="color:var(--primary-green);font-weight:bold">سجل دخولك هنا</a>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+</body>
+</html>
