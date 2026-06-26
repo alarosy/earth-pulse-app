@@ -32,6 +32,7 @@ function initPage() {
   else if (p === 'dashboard.html') initDashboard();
   else if (p === 'upload.html') initUpload();
   else if (p === 'admin.html') initAdmin();
+  else if (p === 'activities.html') initActivities();
 }
 
 // ====== NAV ======
@@ -115,6 +116,31 @@ async function initIndex() {
     }
   } catch (err) {
     container.innerHTML = '<p style="text-align:center;color:var(--text-light);grid-column:1/-1">لم يتم إدراج أنشطة بعد.</p>';
+  }
+}
+
+// ====== ACTIVITIES PAGE ======
+async function initActivities() {
+  const container = document.getElementById('allActivitiesContainer');
+  if (!container) return;
+  try {
+    const { data } = await supabaseClient.from('activities').select('*').order('created_at', { ascending: false });
+    if (data && data.length > 0) {
+      container.innerHTML = data.map(a => `
+        <div class="card" style="padding:0;overflow:hidden">
+          ${a.image_url ? `<img src="${a.image_url}" alt="${escHtml(a.title)}" style="width:100%;height:200px;object-fit:cover">` : '<div style="width:100%;height:200px;background:#f5f5f5;display:flex;align-items:center;justify-content:center">صورة النشاط</div>'}
+          <div style="padding:1.5rem">
+            <h3 style="margin-bottom:0.5rem;font-size:1.2rem">${escHtml(a.title)}</h3>
+            <p style="color:var(--text-light);font-size:0.9rem;margin-bottom:1rem">${escHtml(a.description)}</p>
+            <span style="font-size:0.8rem;color:#aaa">${new Date(a.created_at).toLocaleDateString('ar-EG')}</span>
+          </div>
+        </div>
+      `).join('');
+    } else {
+      container.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--text-light)">لم يتم إدراج أنشطة بعد.</p>';
+    }
+  } catch (err) {
+    container.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--text-light)">حدث خطأ في تحميل النشاطات</p>';
   }
 }
 
