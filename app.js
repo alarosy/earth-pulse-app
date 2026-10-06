@@ -99,14 +99,15 @@ async function initIndex() {
   const container = document.getElementById('activitiesContainer');
   if (!container) return;
   try {
-    const { data } = await supabaseClient.from('activities').select('*').order('created_at', { ascending: false }).limit(3);
+    const { data, error } = await supabaseClient.from('activities').select('*').order('created_at', { ascending: false }).limit(3);
+    if (error) throw error;
     if (data && data.length > 0) {
       container.innerHTML = data.map(a => `
         <div class="card" style="padding:0;overflow:hidden">
-          ${a.image_url ? `<img src="${a.image_url}" alt="${a.title}" style="width:100%;height:200px;object-fit:cover">` : '<div style="width:100%;height:200px;background:#f5f5f5;display:flex;align-items:center;justify-content:center">صورة النشاط</div>'}
+          ${a.image_url ? `<img src="${escHtml(a.image_url)}" alt="${escHtml(a.title)}" style="width:100%;height:200px;object-fit:cover">` : '<div style="width:100%;height:200px;background:#f5f5f5;display:flex;align-items:center;justify-content:center">صورة النشاط</div>'}
           <div style="padding:1.5rem">
             <h3 style="margin-bottom:0.5rem;font-size:1.2rem">${escHtml(a.title)}</h3>
-            <p style="color:var(--text-light);font-size:0.9rem;margin-bottom:1rem">${escHtml(a.description)}</p>
+            <p style="color:var(--text-light);font-size:0.9rem;margin-bottom:1rem;white-space:pre-line">${escHtml(a.description)}</p>
             <span style="font-size:0.8rem;color:#aaa">${new Date(a.created_at).toLocaleDateString('ar-EG')}</span>
           </div>
         </div>
@@ -115,7 +116,8 @@ async function initIndex() {
       container.innerHTML = '<p style="text-align:center;color:var(--text-light);grid-column:1/-1">لم يتم إدراج أنشطة بعد.</p>';
     }
   } catch (err) {
-    container.innerHTML = '<p style="text-align:center;color:var(--text-light);grid-column:1/-1">لم يتم إدراج أنشطة بعد.</p>';
+    console.error(err);
+    container.innerHTML = '<p style="text-align:center;color:var(--text-light);grid-column:1/-1">تعذّر تحميل الأنشطة حالياً، يرجى المحاولة لاحقاً.</p>';
   }
 }
 
@@ -124,14 +126,15 @@ async function initActivities() {
   const container = document.getElementById('allActivitiesContainer');
   if (!container) return;
   try {
-    const { data } = await supabaseClient.from('activities').select('*').order('created_at', { ascending: false });
+    const { data, error } = await supabaseClient.from('activities').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
     if (data && data.length > 0) {
       container.innerHTML = data.map(a => `
         <div class="card" style="padding:0;overflow:hidden">
-          ${a.image_url ? `<img src="${a.image_url}" alt="${escHtml(a.title)}" style="width:100%;height:200px;object-fit:cover">` : '<div style="width:100%;height:200px;background:#f5f5f5;display:flex;align-items:center;justify-content:center">صورة النشاط</div>'}
+          ${a.image_url ? `<img src="${escHtml(a.image_url)}" alt="${escHtml(a.title)}" style="width:100%;height:200px;object-fit:cover">` : '<div style="width:100%;height:200px;background:#f5f5f5;display:flex;align-items:center;justify-content:center">صورة النشاط</div>'}
           <div style="padding:1.5rem">
             <h3 style="margin-bottom:0.5rem;font-size:1.2rem">${escHtml(a.title)}</h3>
-            <p style="color:var(--text-light);font-size:0.9rem;margin-bottom:1rem">${escHtml(a.description)}</p>
+            <p style="color:var(--text-light);font-size:0.9rem;margin-bottom:1rem;white-space:pre-line">${escHtml(a.description)}</p>
             <span style="font-size:0.8rem;color:#aaa">${new Date(a.created_at).toLocaleDateString('ar-EG')}</span>
           </div>
         </div>
@@ -140,6 +143,7 @@ async function initActivities() {
       container.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--text-light)">لم يتم إدراج أنشطة بعد.</p>';
     }
   } catch (err) {
+    console.error(err);
     container.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--text-light)">حدث خطأ في تحميل النشاطات</p>';
   }
 }
@@ -200,7 +204,14 @@ async function initRegister() {
       btn.disabled = false; btn.textContent = 'تسجيل';
       return;
     }
-    await supabaseClient.from('profiles').insert({ id: data.user.id, name, email, school_id: schoolId, role: 'STUDENT', total_points: 0 });
+    const { error: profileError } = await supabaseClient.from('profiles').insert({ id: data.user.id, name, email, school_id: schoolId, role: 'STUDENT', total_points: 0 });
+    if (profileError) {
+      console.error(profileError);
+      errorEl.textContent = 'تم إنشاء الحساب لكن تعذّر حفظ بياناتك، تواصل مع الإدارة';
+      errorEl.classList.remove('hidden');
+      btn.disabled = false; btn.textContent = 'تسجيل';
+      return;
+    }
     await supabaseClient.auth.signOut();
     window.location.href = 'login.html?registered=true';
   });
@@ -221,7 +232,7 @@ async function initDashboard() {
       container.innerHTML = data.map(s => `
         <div class="card" style="padding:0;overflow:hidden;border:1px solid #eee;border-radius:12px">
           <div style="position:relative">
-            <img src="${s.image_url}" alt="نبتة" style="width:100%;height:250px;object-fit:cover">
+            <img src="${escHtml(s.image_url)}" alt="نبتة" style="width:100%;height:250px;object-fit:cover">
             <span class="badge ${s.status === 'READ' ? 'badge-read' : 'badge-unread'}" style="position:absolute;top:10px;left:10px">
               ${s.status === 'READ' ? 'مقيم: ' + s.admin_score + '/10' : 'قيد المراجعة'}
             </span>
@@ -272,9 +283,11 @@ function initUpload() {
     btn.disabled = true; btn.textContent = 'جاري الرفع...';
     try {
       const url = await uploadImage(file, 'submissions');
-      await supabaseClient.from('submissions').insert({ user_id: currentUser.id, image_url: url, description: desc, status: 'UNREAD' });
+      const { error } = await supabaseClient.from('submissions').insert({ user_id: currentUser.id, image_url: url, description: desc, status: 'UNREAD' });
+      if (error) throw error;
       window.location.href = 'dashboard.html';
     } catch (err) {
+      console.error(err);
       errorEl.textContent = 'فشل في رفع الصورة';
       errorEl.classList.remove('hidden');
       btn.disabled = false; btn.textContent = 'تأكيد الرفع';
@@ -322,7 +335,7 @@ async function loadSubmissionsTab(container) {
     container.innerHTML = '<div class="grid-3">' + submissions.map(s => {
       const prof = profileMap[s.user_id] || {};
       return `<div class="card" style="padding:0;overflow:hidden">
-        <img src="${s.image_url}" alt="شتلة" style="width:100%;height:250px;object-fit:cover">
+        <img src="${escHtml(s.image_url)}" alt="شتلة" style="width:100%;height:250px;object-fit:cover">
         <div style="padding:1.5rem">
           <div class="flex justify-between items-center" style="margin-bottom:1rem">
             <span style="font-weight:bold">${escHtml(prof.name || '')}</span>
@@ -425,7 +438,7 @@ async function loadActivitiesTab(container) {
         <div id="activitiesList" class="grid-3" style="margin-top:1rem">
           ${(data || []).length > 0 ? data.map(a => `
             <div style="border:1px solid #ddd;border-radius:8px;overflow:hidden;display:flex;flex-direction:column">
-              ${a.image_url ? `<img src="${a.image_url}" alt="${escHtml(a.title)}" style="width:100%;height:150px;object-fit:cover">` : ''}
+              ${a.image_url ? `<img src="${escHtml(a.image_url)}" alt="${escHtml(a.title)}" style="width:100%;height:150px;object-fit:cover">` : ''}
               <div style="padding:10px;flex:1">
                 <h4 style="margin-bottom:5px">${escHtml(a.title)}</h4>
                 <p style="font-size:0.9rem;color:var(--text-light)">${escHtml(a.description)}</p>
@@ -447,15 +460,21 @@ async function loadActivitiesTab(container) {
       try {
         let imageUrl = null;
         if (file) imageUrl = await uploadImage(file, 'activities');
-        await supabaseClient.from('activities').insert({ title, description: desc, image_url: imageUrl });
+        const { error } = await supabaseClient.from('activities').insert({ title, description: desc, image_url: imageUrl });
+        if (error) throw error;
         loadTab('activities');
-      } catch (err) { alert('حدث خطأ'); btn.disabled = false; btn.textContent = 'إضافة نشاط'; }
+      } catch (err) {
+        console.error(err);
+        alert('تعذّرت إضافة النشاط: ' + (err.message || err));
+        btn.disabled = false; btn.textContent = 'إضافة نشاط';
+      }
     });
 
     document.querySelectorAll('.delete-activity').forEach(btn => {
       btn.addEventListener('click', async () => {
         if (!confirm('هل أنت متأكد من الحذف؟')) return;
-        await supabaseClient.from('activities').delete().eq('id', btn.dataset.id);
+        const { error } = await supabaseClient.from('activities').delete().eq('id', btn.dataset.id);
+        if (error) { alert('تعذّر حذف النشاط: ' + error.message); return; }
         loadTab('activities');
       });
     });
@@ -466,7 +485,5 @@ async function loadActivitiesTab(container) {
 
 // ====== UTILITY ======
 function escHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str || '';
-  return div.innerHTML;
+  return String(str ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
